@@ -1,0 +1,183 @@
+---
+title: "Ornamental Fish - What are the risks ?"
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(fig.width=9, fig.height=6) 
+options(tidyverse.quiet = TRUE)
+library(tidyverse)
+library(knitr)
+source('theme_javier.R')
+```
+
+
+```{r}
+knitr::include_graphics("figures/caw.png")
+```
+
+### Data exploration ornamental fish import data
+
+```{r}
+ornamental <- 
+  read_csv('data/cleaned_data/ornamental_data.csv')
+
+ornamental %>% 
+  summarise_at(vars(Kingdom:Genus, Species, Taxa), n_distinct) %>% 
+  kable(caption = "Number of distinct taxonomic levels in the dataset")
+
+
+ornamental %>% 
+  group_by(Phylum) %>% 
+  summarise_at(vars(Taxa), n_distinct) %>% 
+  arrange(desc(Taxa)) %>% 
+  kable(caption = "Number of taxa per Phylum")
+
+genus_level <- 
+  ornamental %>% 
+  filter(str_detect(Taxa, '\\bsp\\b|\\bspp\\b')) %>% 
+  distinct(Taxa) %>% 
+  nrow()
+
+unique_taxa <- length(unique(ornamental$Taxa))
+
+```
+
+#### Histograms of Frequency and Quantity by Phylum
+
+```{r}
+ornamental %>%
+  gather(key, value, Quantity:Frequency) %>% 
+  ggplot() +
+  geom_histogram(aes(value, fill = Phylum), alpha = .8, bins = 30) +
+  labs(x = 'Imported quantity') +
+  scale_x_log10(breaks = c(1, 10, 1e2,1e3, 1e4, 1e5), labels = scales::comma) +
+  scale_fill_viridis_d() +
+  theme_minimal() +
+  facet_wrap(~key)
+```
+
+#### Box-plots of Quantity by Phylum, Order and Class
+
+```{r}
+ggplot(ornamental) +
+  geom_boxplot(aes(Order, Quantity, fill = Class)) +
+  scale_y_log10(breaks = c(1, 10, 1e2, 1e3, 1e4),
+                labels = scales::comma) +
+  facet_wrap( ~ Phylum, scales = 'free') +
+  coord_flip() +
+  scale_fill_viridis_d() +
+  theme_javier() 
+
+```
+
+#### Box-plots of Frequency by Phylum, Order and Class
+
+```{r}
+ggplot(ornamental) +
+  geom_boxplot(aes(Order, Frequency, fill = Class)) +
+  scale_y_log10() +
+  facet_wrap( ~ Phylum, scales = 'free') +
+  coord_flip() +
+  scale_fill_viridis_d() +
+  theme_javier() 
+```
+
+#### Box-plot of Quantity by Year and Phylum
+
+```{r}
+ornamental %>%
+  drop_na(Year) %>% 
+  ggplot() +
+  geom_boxplot(aes(factor(Year), Quantity, fill= factor(Phylum))) +
+  scale_y_log10(breaks = c(1, 10,  1e2, 1e3, 1e4),
+                labels = scales::comma) +
+  facet_wrap( ~ Phylum, scales = 'free') +
+  scale_fill_viridis_d(guide = F) +
+  theme_javier() +
+  theme(axis.title.x = element_blank())
+```
+
+#### Box-plot of Quantity by Year and Phylum
+
+```{r}
+ornamental %>%
+  drop_na(Year) %>% 
+  ggplot() +
+  geom_boxplot(aes(factor(Year), Frequency, fill= Phylum)) +
+  scale_y_sqrt() +
+  facet_wrap( ~ Phylum, scales = 'free') +
+  scale_fill_viridis_d(guide = F) +
+  theme_javier() +
+  theme(axis.title.x = element_blank())
+```
+
+
+#### Top 20 taxa by annual mean (± SE) import Quantity
+
+```{r }
+ornamental %>%
+  group_by(Taxa, Phylum) %>% 
+  summarise_at("Quantity", list(mean = mean, sd = sd, se = ~ sd / sqrt(n()))) %>%
+  group_by(Phylum) %>%
+  top_n(wt = mean, n = 20) %>% 
+  ggplot(aes(x = fct_reorder(Taxa,.x =  mean), y = mean, fill = Phylum)) +
+  geom_bar(position=position_dodge(), stat="identity",
+           colour="black", # Use black outlines,
+           size=.3,
+           width = .8) +      # Thinner lines
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
+                size=.3,    # Thinner lines
+                width=.2,
+                position=position_dodge(.9)) +
+  scale_y_log10(breaks = c(1, 10, 1e2, 1e3, 1e4),
+                labels = scales::comma) +
+  coord_flip() +
+  facet_wrap( ~ Phylum, scales = 'free') +
+  theme_minimal() +
+  theme(axis.text.y = element_text(face = 'italic')) +
+  labs(x = "Taxa", y = "Mean number of individuals per Year (2015 - 2019)") +
+  scale_fill_viridis_d(name = "Phylum")
+
+```
+
+#### Top 20 taxa by annual mean (± SE) import Frequency
+
+```{r}
+ornamental %>%
+  group_by(Taxa, Phylum) %>% 
+  summarise_at("Frequency", list(mean = mean, sd = sd, se = ~ sd / sqrt(n()))) %>%
+  group_by(Phylum) %>%
+  top_n(wt = mean, n = 20) %>% 
+  ggplot(aes(x = fct_reorder(Taxa,.x =  mean), y = mean, fill = Phylum)) +
+  geom_bar(position=position_dodge(), stat="identity",
+           colour="black", # Use black outlines,
+           size=.3,
+           width = .8) +      # Thinner lines
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
+                size=.3,    # Thinner lines
+                width=.2,
+                position=position_dodge(.9)) +
+  scale_y_log10(breaks = c(1, 10, 1e2, 1e3, 1e4),
+                labels = scales::comma) +
+  coord_flip() +
+  facet_wrap( ~ Phylum, scales = 'free') +
+  theme_minimal() +
+  theme(axis.text.y = element_text(face = 'italic')) +
+  labs(x = "Taxa", y = "Mean number of consignments per Year (2015 - 2019)") +
+  scale_fill_viridis_d(name = "Phylum")
+```
+
+#### Relationship between import Quantity and Frequency
+
+```{r}
+ornamental %>%
+  ggplot(aes(Frequency, Quantity, color = Phylum)) +
+  geom_point() +
+  facet_wrap(~Phylum, scales = 'free') +
+  scale_color_viridis_d() +
+  labs(name = "Phylum") +
+  theme_javier()
+```
+

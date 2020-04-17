@@ -1,0 +1,183 @@
+---
+title: "Ornamental Fish - What are the risks ?"
+output: html_document
+---
+
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+options(tidyverse.quiet = TRUE)
+library(tidyverse)
+library(knitr)
+```
+
+
+```{r}
+knitr::include_graphics("figures/caw.png")
+```
+
+
+### Cleaning of NZ ornamental fish and invertebrate import data
+
+These analyses are based on an [excel spreadsheet](https://cawthron99.sharepoint.com/:x:/r/sites/Ornamentalfish-whataretherisks/Shared%20Documents/General/data_analyses/data/Copy%20of%20Summary%20Ornamental%20Fish%20Imports%202015%20-%2019.xlsx?d=wc94eb352d3784462aae6ad7f47b95063&csf=1&e=aBiiDk) e-mailed by [Eugene Georgiades (MPI) on Wednesday, 04 March 2020](https://cawthron99.sharepoint.com/:w:/r/sites/Ornamentalfish-whataretherisks/Shared%20Documents/General/Email%20Messages/FW%20406087%20Ornamental%20fish%20imports%20data.htm?csf=1&e=MQnEdg), summarising the ornamental fish and marine invertebrates import data for 2015 to 2019.  Specifically, using the 'original records' spreadsheet containing all raw data.
+
+
+See the [Approach for Data Capture](https://cawthron99.sharepoint.com/:b:/s/Ornamentalfish-whataretherisks/EVODNvGdqd1PpoG-j2q6zBwB1_AI79mG2REjGY_eHqAs8Q?e=DLCC5H) document regarding how the data was harvested and underlying assumptions.
+
+Acknowledges to  MPI’s Operational Research Team and Tanya Hurley who did all of the data capture from the original invoices to excel format.
+
+
+```{r setup, echo=FALSE, message = F, include = F}
+import_raw <- read_csv('data/cleaned_data/import_data_raw.csv')
+
+import_raw %>% 
+  select(`Scientific Name`:taxa, year) %>% 
+  summary()
+
+import_raw %>%
+  select(`Scientific Name`, taxa) %>%
+  group_by(taxa) %>%
+  filter (!duplicated(taxa)) %>%
+  ungroup() %>%
+  mutate(taxa = as.character(taxa)) %>% 
+  head(30) %>% 
+  kable()
+
+unique_MPI <- length(unique(import_raw$`Scientific Name`))
+```
+
+The raw import data had `r nrow(import_raw)` data points, with `r unique_MPI` distinct names recorded. The cleaneing process included removing names, such as :"Not known", "Hybrid cichlid" , "Missing any listing of fish" and "Total sp" and other idiosyncrasies (see example tables below). 
+
+The variable year was extracted from the "PDF" column in the spreadsheet and the total fish quantity (in number of fish) and import frequency  calculated for each year and accepted species combination.
+
+Taxa recorded at genus level using only the genus names or using "sp" or "spp" are shown in the table below.
+
+```{r echo=FALSE}
+import_raw %>% 
+  filter(sp==TRUE & taxa_length <3) %>% 
+  select(`Scientific Name`, taxa, Quantity) %>% 
+  arrange(desc(Quantity)) %>% 
+  group_by(taxa, `Scientific Name`) %>% 
+  summarise(Quantity = sum(Quantity) ) %>% 
+  filter(Quantity>100) %>% 
+  arrange(desc(Quantity)) %>% 
+  kable(caption = "Taxa at genus level with quantity >100")
+
+```
+
+Ancistrus refer to [bristlenose plecos](https://en.wikipedia.org/wiki/Ancistrus), with 76 species in the genus.
+
+Astraea sp mostly likely is [Astraea Turbo Snail Astraea tecta](https://www.petonlinenz.co.nz/algaesnail) ?
+
+Rineloricaria are other type catfish, this might the the whiptail catfish [Rineloricaria lanceolata](https://en.wikipedia.org/wiki/Rineloricaria_lanceolata)?
+
+The coral Acropora sp with already several different species recorded in the dataset.
+
+A few "variety" and "cf" type of taxa and >2 characters (subspecies) edits in the table below.
+```{r pressure, echo=FALSE}
+import_raw %>% 
+  filter(var == TRUE | cf==TRUE | taxa_length>2) %>% 
+  select(`Scientific Name`, taxa, Quantity, cf, var) %>% 
+  group_by(taxa, `Scientific Name`) %>% 
+  summarise(Quantity = sum(Quantity) ) %>% 
+  arrange(desc(Quantity)) %>% 
+  slice(1:10) %>% 
+  kable(cation = "10 examples of Variety and cf taxa and taxa with >2 characters (subspecies)")
+```
+
+# Taxonomy disambiguation 
+
+Taxonomomy is hard as there are many different classification systems and obviously the `r length(unique(import_raw$taxa))` distinct names recorded in the import invoices are all over the place. Because we are dealing with freshwater and marine taxa we can just rely on the [World Register of Marine Species, WoRMS](www.marinespecies.org). 
+
+Unique and cleaned names identified in the first corrected for mis-spellings using the R library taxize Taxize (Chamberlain and Szöcs, 2013) [A taxonomic toolbelt for R](https://docs.ropensci.org/taxize). Taxize allows users to search over many taxonomic data sources for species names (scientific and common) and download up and downstream taxonomic hierarchical information - among other things. In the first step taxa were queried  against the Catalogue of Life, World Register of Marine Species, GBIF Backbone Taxonomy and Encyclopedia of Life databases uisng the taxize function gnr_resolve.
+
+
+These taxa were derived after an iterative process using the taxize general resolver function and manual Google searches for unmatched names. The full list of changes is saved [here](https://cawthron99.sharepoint.com/:x:/s/Ornamentalfish-whataretherisks/EfpTBRVEQ5RNvcSZaCqck6oBk9TFcTIM8cUWn67-bdIodA?e=ipduh4) 
+
+
+```{r}
+read_csv('data/cleaned_data/nc.csv') %>% slice(1:10) %>% kable(caption = 'Example of 10 taxa name changes')
+
+```
+
+
+## Taxonomic Classification
+
+After the cleaning and name matching process, we ended up with `r nrow(read_csv('data/cleaned_data/distinct_taxa.csv'))` distinct/unique names from the original `r unique_MPI` names. These were used in the second step for obtaining the taxonomic classification and taxa status using the GBIF database accessed from taxize using the function get_gbifid_
+
+The full classification dataset is saved [here](https://cawthron99.sharepoint.com/:x:/s/Ornamentalfish-whataretherisks/EYH-QcLOSHdDtMh11vInYUwBN9s9rVCvpmaIJcjvOWpCyw?e=kuRgCc).
+
+This exercise showed that out of the `r nrow(read_csv('data/cleaned_data/distinct_taxa.csv'))` original taxa 820 were accepted names, the rest were 169 synonyms and 6 of doubtful taxa with classification.
+
+The full list of synonyms is saved [here](https://cawthron99.sharepoint.com/:f:/r/sites/Ornamentalfish-whataretherisks/Shared%20Documents/General/data_analyses/data/cleaned_data?csf=1&e=IBqcFM)
+
+```{r}
+id_taxa_freq_df <- read_csv('data/cleaned_data/gbif_import_clean.csv')
+id_taxa_freq_df %>% 
+  group_by(status) %>% 
+  summarise(n = n()) %>% 
+  kable(caption = "Classification by status")
+```
+
+
+```{r}
+id_taxa_freq_df %>% 
+  group_by(rank) %>% 
+  summarise(n = n()) %>% 
+  kable(caption = 'Hierarchical classification obtained from GBIF')
+```
+
+```{r}
+id_taxa_freq_df %>% 
+  group_by(matchtype) %>% 
+  summarise(n = n()) %>% 
+  kable(caption = "Classification by match type")
+
+id_taxa_freq_df %>% 
+  filter(matchtype == "FUZZY") %>% 
+  select(canonicalname, species) %>% 
+  slice(1:15) %>% 
+  kable(caption = "15 Fuzzy taxa examples")
+
+
+id_taxa_freq_df %>% 
+  filter(status=='DOUBTFUL') %>% 
+  select(scientificname:genus) %>% 
+  kable(caption = "Doubtful taxa")
+
+ornamental <- read_csv('data/cleaned_data/ornamental_data.csv') %>% 
+  rename(taxa = taxa_new)
+
+ornamental %>% 
+  summarise_at(vars(kingdom:genus, species, taxa), n_distinct) %>% 
+  kable(caption = "Number of disctinct taxonomic levels in the dataset")
+
+
+ornamental %>% 
+  group_by(phylum) %>% 
+  summarise_at(vars(taxa), n_distinct) %>% 
+  arrange(desc(taxa)) %>% 
+  kable(caption = "Number of taxa per phylum")
+
+genus_level <- 
+  ornamental %>% 
+  filter(str_detect(taxa, '\\bsp\\b|\\bspp\\b')) %>% 
+  distinct(taxa) %>% 
+  nrow()
+
+unique_taxa <- length(unique(ornamental$taxa))
+```
+
+
+After resolving the taxonomy, including changing names of synomized taxa to accepted ones, merging data for synomized taxa if already present in the dataset, checking doubtful classification taxa, fixing miss-classified (i.e. outside Animalia) and fuzzy matching taxa. 
+
+The taxonomically checked dataset ended with `r unique_taxa` distinct species. Out of these `r genus_level` were classified at genus level, except one (i.e. Scleractinia) that was classified at Order level.
+
+The full cleaned and taxonomically checked data is saved [here](https://cawthron99.sharepoint.com/:x:/r/sites/Ornamentalfish-whataretherisks/Shared%20Documents/General/data_analyses/data/cleaned_data/ornamental_data.csv?d=w257e69b140844c8aabc0804c4d2a390c&csf=1&e=Msxidm)
+
+
+```{r echo=FALSE, fig.cap=NULL,  out.width = '100%'}
+knitr::include_graphics("figures/Taxonomic data flow diagram.png")
+```
+```
+
