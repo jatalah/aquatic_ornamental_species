@@ -1,8 +1,13 @@
-# ornamental_fish
-Ornamental fish: what are the risks?
+<h1>EVALUATING ORNAMENTAL AQUARIUM TRADE IMPORTS FOR BIOSECURITY</h1>
 
-MPI requires updated information regarding pathogen susceptibility and temperature tolerances of species approved for import into New Zealand through the Import Health Standard (IHS) Ornamental Fish and Marine Invertebrates.
+Javier Atalah1*, Ian Davidson1, Eugene Georgiades2 and Kate S. Hutson1,3  
+1Cawthron Institute, Private Bag 2, Nelson 7010, New Zealand
+2 Biosecurity New Zealand, Ministry for Primary Industries, Wellington, New Zealand
+3 Centre for Sustainable Tropical Fisheries and Aquaculture, College of Science and Engineering, James Cook University, Australia
+*Correspondence: 
+Corresponding author javier.atalah@cawthron.org.nz
 
-This RFP relates to a desktop study to prioritise ornamental fish and marine invertebrates for further investigation and assess the literature regarding their pathogen susceptibility and temperature tolerances. 
+ABSTRACT 
+The ornamental fish trade is a significant pathway for the introduction of non-indigenous species into aquatic environments. Introductions are expected to increase as industry growth continues and warmer conditions emerge under future climate scenarios. Accurate data on the ornamental trade is key for effective biosecurity and conservation management. This study used recent (2015 – 2019) data on New Zealand’s imports to determine the composition, diversity, abundance, and arrival frequency of ornamental fish. Results were then used to prioritise species for assessment of establishment risk based on temperature tolerance and species distribution modeling. Our analysis revealed that ca. 300,000 ornamental fish are imported annually to New Zealand, with freshwater bony fish comprising 98% of import quantities. Despite the relatively small size of the trade, the estimated ornamental species diversity of 865 taxa (89% identified to species level) is comparable to larger import countries and ~60% were marine species. The top 20 ranked species based on quantity and frequency of import were exclusively tropical and subtropical freshwater bony fish and overlapped with most common ornamental species globally, including the top three neon tetra (Paracheirodon innesi), guppy (Poecilia reticulata), and tiger barb (Puntigrus tetrazona). Species distribution modelling of the 20 most imported species predicted that fourteen species are suitable to New Zealand’s current climate conditions, most notably sucker-belly loach (Pseudogastromyzon myersi), white cloud mountain minnow (Tanichthys albonubes), and golden otocinclus (Macrotocinclus affinis). Some changes in habitat suitability were predicted under future climate scenarios, with largest increases (29%) for Poecilia reticulata. Our approach provides an adaptable framework to assess biosecurity risks regarding ornamental species’ imports and to inform decision making on the continued  suitability of import standards.￼.
 
-Findings from this project will be used to update MPI’s risk assessments of pest and pathogen introduction and spread, assist us in prioritising and optimising pathogen testing, and inform our decision making regarding the importation of ornamental fish into New Zealand.  
+Keywords: aquarium trade, non-indigenous species, species distribution modelling, New Zealand, biosecurity, Poecilia reticulata.
