@@ -163,8 +163,6 @@ cc85_2070_map <-
     common.legend = T,legend = 'right'
   )
 
-
-
 # 2. Save individual maps-------
 ggsave(mr26_2050_map,
        filename = 'figures/mr26_2050_map.png',
